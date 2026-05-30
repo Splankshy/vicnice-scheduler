@@ -2,10 +2,31 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.db.models import Q
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from .models import Client, Student, StaffMember, Appointment
 from .forms import AppointmentForm, ClientForm, StudentForm
 
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect("dashboard")
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect("dashboard")
+        else:
+            messages.error(request, "Invalid username or password")
+    return render(request, "scheduler/login.html")
+
+def logout_view(request):
+    logout(request)
+    return redirect("login")
+
+@login_required
 def dashboard(request):
     today = timezone.now().date()
     todays = Appointment.objects.filter(date=today)
@@ -23,6 +44,7 @@ def dashboard(request):
     }
     return render(request, "scheduler/dashboard.html", context)
 
+@login_required
 def appointments(request):
     query = request.GET.get("q", "")
     all_appointments = Appointment.objects.all().order_by("-date")
@@ -39,12 +61,14 @@ def appointments(request):
             return redirect("appointments")
     return render(request, "scheduler/appointments.html", {"appointments": all_appointments, "form": form, "query": query})
 
+@login_required
 def delete_appointment(request, pk):
     a = get_object_or_404(Appointment, pk=pk)
     if request.method == "POST":
         a.delete()
     return redirect("appointments")
 
+@login_required
 def edit_appointment(request, pk):
     a = get_object_or_404(Appointment, pk=pk)
     form = AppointmentForm(instance=a)
@@ -55,6 +79,7 @@ def edit_appointment(request, pk):
             return redirect("appointments")
     return render(request, "scheduler/edit_appointment.html", {"form": form, "appointment": a})
 
+@login_required
 def clients(request):
     query = request.GET.get("q", "")
     all_clients = Client.objects.all().order_by("name")
@@ -70,12 +95,14 @@ def clients(request):
             return redirect("clients")
     return render(request, "scheduler/clients.html", {"clients": all_clients, "form": form, "query": query})
 
+@login_required
 def delete_client(request, pk):
     c = get_object_or_404(Client, pk=pk)
     if request.method == "POST":
         c.delete()
     return redirect("clients")
 
+@login_required
 def students(request):
     query = request.GET.get("q", "")
     all_students = Student.objects.all().order_by("name")
@@ -91,12 +118,14 @@ def students(request):
             return redirect("students")
     return render(request, "scheduler/students.html", {"students": all_students, "form": form, "query": query})
 
+@login_required
 def delete_student(request, pk):
     s = get_object_or_404(Student, pk=pk)
     if request.method == "POST":
         s.delete()
     return redirect("students")
 
+@login_required
 def calendar_view(request):
     appointments = Appointment.objects.all().order_by("date")
     return render(request, "scheduler/calendar.html", {"appointments": appointments})

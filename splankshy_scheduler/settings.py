@@ -128,3 +128,6 @@ MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 db_from_env = dj_database_url.config(conn_max_age=600)
 if db_from_env:
     DATABASES['default'].update(db_from_env)
+    LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/login/'
