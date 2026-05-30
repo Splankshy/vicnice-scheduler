@@ -1,6 +1,11 @@
 {% extends "scheduler/base.html" %}
 {% block title %}Appointments{% endblock %}
 {% block content %}
+{% if messages %}
+{% for message in messages %}
+<div style="padding:12px;background:#d1fae5;color:#065f46;border-radius:8px;margin-bottom:16px;">{{ message }}</div>
+{% endfor %}
+{% endif %}
 <div class="card">
   <h2>New Appointment</h2>
   <form method="post" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
@@ -18,14 +23,15 @@
   </form>
 </div>
 <div class="card">
-  <h2>All Appointments</h2>
+  <h2>All Appointments <a href="/appointments/print/" class="btn btn-primary" style="float:right;font-size:13px;">Print / Export PDF</a></h2>
   <form method="get" class="search-bar">
     <input type="text" name="q" placeholder="Search by title, client, location..." value="{{ query }}">
     <button type="submit" class="btn btn-primary">Search</button>
     {% if query %}<a href="/appointments/" class="btn" style="background:#f3f4f6;color:#374151;">Clear</a>{% endif %}
   </form>
   {% if appointments %}
-  <div class="table-wrap"><table>
+  <div class="table-wrap">
+  <table>
     <thead><tr><th>Title</th><th>Type</th><th>Date</th><th>Time</th><th>Client / Student</th><th>Status</th><th>Actions</th></tr></thead>
     <tbody>
     {% for a in appointments %}
@@ -36,8 +42,9 @@
       <td>{{ a.start_time|default:"-" }}{% if a.end_time %} - {{ a.end_time }}{% endif %}</td>
       <td>{{ a.client|default:a.student|default:"-" }}</td>
       <td><span class="badge badge-{{ a.status }}">{{ a.get_status_display }}</span></td>
-      <td>
-        <a href="/appointments/{{ a.pk }}/remind/" style="background:#059669;color:white;border:none;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;text-decoration:none;margin-right:4px;">Remind</a><a href="/appointments/{{ a.pk }}/edit/" class="btn btn-primary" style="font-size:12px;padding:4px 10px;">Edit</a>
+      <td style="white-space:nowrap;">
+        <a href="/appointments/{{ a.pk }}/remind/" style="background:#059669;color:white;border:none;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;text-decoration:none;margin-right:4px;">Remind</a>
+        <a href="/appointments/{{ a.pk }}/edit/" class="btn btn-primary" style="font-size:12px;padding:4px 10px;margin-right:4px;">Edit</a>
         <form method="post" action="/appointments/{{ a.pk }}/delete/" style="display:inline;">
           {% csrf_token %}
           <button type="submit" style="background:#fee2e2;color:#991b1b;border:none;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;" onclick="return confirm('Delete?')">Delete</button>
@@ -46,7 +53,8 @@
     </tr>
     {% endfor %}
     </tbody>
-  </table></div>
+  </table>
+  </div>
   {% else %}
   <div class="empty">{% if query %}No results for "{{ query }}"{% else %}No appointments yet.{% endif %}</div>
   {% endif %}
