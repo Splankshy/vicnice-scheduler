@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.db.models import Q
+from django.contrib.auth.models import User
+from django.contrib import messages
 from .models import Client, Student, StaffMember, Appointment
 from .forms import AppointmentForm, ClientForm, StudentForm
 
@@ -98,3 +100,19 @@ def delete_student(request, pk):
 def calendar_view(request):
     appointments = Appointment.objects.all().order_by("date")
     return render(request, "scheduler/calendar.html", {"appointments": appointments})
+
+def setup(request):
+    if User.objects.filter(is_superuser=True).exists():
+        return redirect("dashboard")
+    if request.method == "POST":
+        key = request.POST.get("key")
+        if key != "vicnice2026":
+            messages.error(request, "Wrong setup key!")
+            return render(request, "scheduler/setup.html")
+        username = request.POST.get("username")
+        email = request.POST.get("email", "")
+        password = request.POST.get("password")
+        User.objects.create_superuser(username=username, email=email, password=password)
+        messages.success(request, "Admin account created! You can now log in.")
+        return redirect("/admin/")
+    return render(request, "scheduler/setup.html")
