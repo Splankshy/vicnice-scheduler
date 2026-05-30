@@ -5,8 +5,11 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
+from django.conf import settings
 from .models import Client, Student, StaffMember, Appointment
 from .forms import AppointmentForm, ClientForm, StudentForm
+from datetime import date
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -80,6 +83,37 @@ def edit_appointment(request, pk):
     return render(request, "scheduler/edit_appointment.html", {"form": form, "appointment": a})
 
 @login_required
+def print_appointments(request):
+    appointments = Appointment.objects.all().order_by("date")
+    return render(request, "scheduler/print_appointments.html", {
+        "appointments": appointments,
+        "today": date.today().strftime("%B %d, %Y")
+    })
+
+@login_required
+def send_reminder(request, pk):
+    a = get_object_or_404(Appointment, pk=pk)
+    recipient = None
+    name = None
+    if a.client and a.client.email:
+        recipient = a.client.email
+        name = a.client.name
+    elif a.student and a.student.email:
+        recipient = a.student.email
+        name = a.student.name
+    if recipient:
+        subject = f"Reminder: {a.title} on {a.date}"
+        message = f"Dear {name},\n\nThis is a reminder for your upcoming appointment at Vic_nice Home Concepts.\n\nAppointment: {a.title}\nType: {a.get_type_display()}\nDate: {a.date}\nTime: {a.start_time or chr(39)}TBD{chr(39)}\nLocation: {a.location or chr(39)}Vic_nice Studio{chr(39)}\n\nPlease contact us if you need to reschedule.\n\nBest regards,\nVic_nice Home Concepts"
+        try:
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [recipient])
+            messages.success(request, f"Reminder sent to {recipient}!")
+        except Exception as e:
+            messages.error(request, f"Failed to send: {str(e)}")
+    else:
+        messages.error(request, "No email address found for this appointment.")
+    return redirect("appointments")
+
+@login_required
 def clients(request):
     query = request.GET.get("q", "")
     all_clients = Client.objects.all().order_by("name")
@@ -128,7 +162,6 @@ def delete_student(request, pk):
 @login_required
 def calendar_view(request):
     import calendar as cal_module
-    from datetime import date
     today = date.today()
     month = int(request.GET.get("month", today.month))
     year = int(request.GET.get("year", today.year))
@@ -181,40 +214,3 @@ def setup(request):
         messages.success(request, "Admin account created! You can now log in.")
         return redirect("/admin/")
     return render(request, "scheduler/setup.html")
-
-@login_required
-def send_reminder(request, pk):
-    from django.core.mail import send_mail
-    from django.conf import settings
-    a = get_object_or_404(Appointment, pk=pk)
-    recipient = None
-    if a.client and a.client.email:
-        recipient = a.client.email
-    elif a.student and a.student.email:
-        recipient = a.student.email
-    if recipient:
-        subject = f"Reminder: {a.title} on {a.date}"
-        message = f"""
-Dear {a.client or a.student},
-
-This is a reminder for your upcoming appointment at Vic_nice Home Concepts.
-
-Appointment: {a.title}
-Type: {a.get_type_display()}
-Date: {a.date}
-Time: {a.start_time or "TBD"}
-Location: {a.location or "Vic_nice Studio"}
-
-Please contact us if you need to reschedule.
-
-Best regards,
-Vic_nice Home Concepts
-        """
-        try:
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [recipient])
-            messages.success(request, f"Reminder sent to {recipient}!")
-        except Exception as e:
-            messages.error(request, f"Failed to send email: {str(e)}")
-    else:
-        messages.error(request, "No email address found for this appointment.")
-    return redirect("appointments")
