@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vic_nice - Appointments Report</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Segoe UI",sans-serif;padding:30px;color:#1a1a2e;}
+.header{text-align:center;margin-bottom:30px;border-bottom:3px solid #3730a3;padding-bottom:20px;}
+.header h1{font-size:24px;color:#3730a3;font-weight:700;}
+.header p{font-size:14px;color:#6b7280;margin-top:4px;}
+table{width:100%;border-collapse:collapse;margin-top:20px;}
+th{background:#3730a3;color:white;padding:10px 12px;font-size:12px;text-align:left;text-transform:uppercase;}
+td{padding:10px 12px;font-size:13px;border-bottom:1px solid #e5e7eb;}
+tr:nth-child(even) td{background:#f8f7ff;}
+.footer{margin-top:30px;text-align:center;font-size:12px;color:#9ca3af;}
+.no-print{margin-bottom:20px;}
+.btn{padding:10px 24px;background:#3730a3;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;margin-right:10px;}
+@media print{.no-print{display:none;}body{padding:10px;}}
+</style>
+</head>
+<body>
+<div class="no-print">
+  <button class="btn" onclick="window.print()">Print / Save as PDF</button>
+  <a href="/appointments/" style="color:#3730a3;font-size:14px;">Back to Appointments</a>
+</div>
+<div class="header">
+  <h1>Vic_nice Home Concepts</h1>
+  <p>Appointments Report &mdash; Generated {{ today }}</p>
+</div>
+<table>
+  <thead>
+    <tr><th>Title</th><th>Type</th><th>Date</th><th>Time</th><th>Client / Student</th><th>Location</th><th>Status</th></tr>
+  </thead>
+  <tbody>
+  {% for a in appointments %}
+  <tr>
+    <td>{{ a.title }}</td>
+    <td>{{ a.get_type_display }}</td>
+    <td>{{ a.date }}</td>
+    <td>{{ a.start_time|default:"-" }}{% if a.end_time %} - {{ a.end_time }}{% endif %}</td>
+    <td>{{ a.client|default:a.student|default:"-" }}</td>
+    <td>{{ a.location|default:"-" }}</td>
+    <td>{{ a.get_status_display }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<div class="footer">Vic_nice Home Concepts &mdash; Confidential</div>
+</body>
+</html>
