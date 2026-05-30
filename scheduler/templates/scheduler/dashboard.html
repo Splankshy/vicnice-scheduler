@@ -1,0 +1,52 @@
+{% extends "scheduler/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="stats">
+  <div class="stat"><div class="num">{{ todays.count }}</div><div class="label">Today's Appointments</div></div>
+  <div class="stat"><div class="num">{{ total_clients }}</div><div class="label">Total Clients</div></div>
+  <div class="stat"><div class="num">{{ total_students }}</div><div class="label">Total Students</div></div>
+  <div class="stat"><div class="num">{{ upcoming.count }}</div><div class="label">Upcoming</div></div>
+</div>
+<div class="card">
+  <h2>Today's Schedule</h2>
+  {% if todays %}
+  <table>
+    <thead><tr><th>Title</th><th>Type</th><th>Time</th><th>Client</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for a in todays %}
+    <tr>
+      <td>{{ a.title }}</td>
+      <td><span class="badge badge-{{ a.type }}">{{ a.get_type_display }}</span></td>
+      <td>{{ a.start_time|default:"-" }}</td>
+      <td>{{ a.client|default:a.student|default:"-" }}</td>
+      <td><span class="badge badge-{{ a.status }}">{{ a.get_status_display }}</span></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">No appointments scheduled for today.</div>
+  {% endif %}
+</div>
+<div class="card">
+  <h2>Upcoming Appointments</h2>
+  {% if upcoming %}
+  <table>
+    <thead><tr><th>Title</th><th>Type</th><th>Date</th><th>Client</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for a in upcoming %}
+    <tr>
+      <td>{{ a.title }}</td>
+      <td><span class="badge badge-{{ a.type }}">{{ a.get_type_display }}</span></td>
+      <td>{{ a.date }}</td>
+      <td>{{ a.client|default:a.student|default:"-" }}</td>
+      <td><span class="badge badge-{{ a.status }}">{{ a.get_status_display }}</span></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">No upcoming appointments.</div>
+  {% endif %}
+</div>
+{% endblock %}

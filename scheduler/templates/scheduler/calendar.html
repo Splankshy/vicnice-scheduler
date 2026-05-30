@@ -1,0 +1,26 @@
+{% extends "scheduler/base.html" %}
+{% block title %}Calendar{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>All Appointments by Date</h2>
+  {% if appointments %}
+  <table>
+    <thead><tr><th>Date</th><th>Title</th><th>Type</th><th>Time</th><th>Client / Student</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for a in appointments %}
+    <tr>
+      <td><strong>{{ a.date }}</strong></td>
+      <td>{{ a.title }}</td>
+      <td><span class="badge badge-{{ a.type }}">{{ a.get_type_display }}</span></td>
+      <td>{{ a.start_time|default:"-" }} {% if a.end_time %} - {{ a.end_time }}{% endif %}</td>
+      <td>{{ a.client|default:a.student|default:"-" }}</td>
+      <td><span class="badge badge-{{ a.status }}">{{ a.get_status_display }}</span></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">No appointments yet. <a href="/admin/scheduler/appointment/add/">Add your first one</a></div>
+  {% endif %}
+</div>
+{% endblock %}
