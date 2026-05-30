@@ -1,84 +1,58 @@
-# Login template
-f = open('scheduler/templates/scheduler/login.html', 'w', encoding='utf-8')
-f.write('<!DOCTYPE html>\n')
-f.write('<html lang="en">\n')
-f.write('<head>\n')
-f.write('<meta charset="UTF-8">\n')
-f.write('<meta name="viewport" content="width=device-width, initial-scale=1.0">\n')
-f.write('<title>Vic_nice Home Concepts - Login</title>\n')
-f.write('<style>\n')
-f.write('*{margin:0;padding:0;box-sizing:border-box;}\n')
-f.write('body{font-family:"Segoe UI",sans-serif;background:#3730a3;min-height:100vh;display:flex;align-items:center;justify-content:center;}\n')
-f.write('.login-box{background:white;border-radius:16px;padding:40px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.3);}\n')
-f.write('.logo{text-align:center;margin-bottom:32px;}\n')
-f.write('.logo h1{font-size:24px;font-weight:700;color:#3730a3;}\n')
-f.write('.logo p{font-size:14px;color:#6b7280;margin-top:4px;}\n')
-f.write('.field{margin-bottom:20px;}\n')
-f.write('.field label{display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;}\n')
-f.write('input[type=text],input[type=password]{width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;outline:none;transition:border 0.2s;}\n')
-f.write('input:focus{border-color:#3730a3;box-shadow:0 0 0 3px rgba(55,48,163,0.1);}\n')
-f.write('.btn{width:100%;padding:12px;background:#3730a3;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:background 0.2s;}\n')
-f.write('.btn:hover{background:#4f46e5;}\n')
-f.write('.error{background:#fee2e2;color:#991b1b;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px;}\n')
-f.write('</style>\n')
-f.write('</head>\n')
-f.write('<body>\n')
-f.write('<div class="login-box">\n')
-f.write('  <div class="logo">\n')
-f.write('    <h1>Vic_nice Home Concepts</h1>\n')
-f.write('    <p>Staff Login</p>\n')
-f.write('  </div>\n')
-f.write('  {% if messages %}\n')
-f.write('  {% for message in messages %}\n')
-f.write('  <div class="error">{{ message }}</div>\n')
-f.write('  {% endfor %}\n')
-f.write('  {% endif %}\n')
-f.write('  <form method="post">\n')
-f.write('    {% csrf_token %}\n')
-f.write('    <div class="field">\n')
-f.write('      <label>Username</label>\n')
-f.write('      <input type="text" name="username" required autofocus>\n')
-f.write('    </div>\n')
-f.write('    <div class="field">\n')
-f.write('      <label>Password</label>\n')
-f.write('      <input type="password" name="password" required>\n')
-f.write('    </div>\n')
-f.write('    <button type="submit" class="btn">Log In</button>\n')
-f.write('  </form>\n')
-f.write('</div>\n')
-f.write('</body>\n')
-f.write('</html>\n')
-f.close()
-print('login.html done!')
+import calendar as cal
+from datetime import date
 
-# Update urls.py
-f = open('scheduler/urls.py', 'w', encoding='utf-8')
-f.write('from django.urls import path\n')
-f.write('from . import views\n')
-f.write('\n')
-f.write('urlpatterns = [\n')
-f.write('    path("", views.dashboard, name="dashboard"),\n')
-f.write('    path("login/", views.login_view, name="login"),\n')
-f.write('    path("logout/", views.logout_view, name="logout"),\n')
-f.write('    path("appointments/", views.appointments, name="appointments"),\n')
-f.write('    path("appointments/<int:pk>/delete/", views.delete_appointment, name="delete_appointment"),\n')
-f.write('    path("appointments/<int:pk>/edit/", views.edit_appointment, name="edit_appointment"),\n')
-f.write('    path("clients/", views.clients, name="clients"),\n')
-f.write('    path("clients/<int:pk>/delete/", views.delete_client, name="delete_client"),\n')
-f.write('    path("students/", views.students, name="students"),\n')
-f.write('    path("students/<int:pk>/delete/", views.delete_student, name="delete_student"),\n')
-f.write('    path("calendar/", views.calendar_view, name="calendar"),\n')
-f.write('    path("setup/", views.setup, name="setup"),\n')
-f.write(']\n')
-f.close()
-print('urls.py done!')
-
-# Update base.html to add logout button
-f = open('scheduler/templates/scheduler/base.html', 'r', encoding='utf-8')
+f = open('scheduler/views.py', 'r', encoding='utf-8')
 content = f.read()
 f.close()
-content = content.replace('  <a href="/admin/" onclick="closeSidebar()">Admin</a>', '  <a href="/admin/" onclick="closeSidebar()">Admin</a>\n  <a href="/logout/" onclick="closeSidebar()" style="margin-top:auto;border-top:1px solid #4f46e5;color:#fca5a5;">Logout</a>')
-f = open('scheduler/templates/scheduler/base.html', 'w', encoding='utf-8')
+
+old = '''@login_required
+def calendar_view(request):
+    appointments = Appointment.objects.all().order_by("date")
+    return render(request, "scheduler/calendar.html", {"appointments": appointments})'''
+
+new = '''@login_required
+def calendar_view(request):
+    import calendar as cal_module
+    from datetime import date
+    today = date.today()
+    month = int(request.GET.get("month", today.month))
+    year = int(request.GET.get("year", today.year))
+    if month < 1:
+        month = 12
+        year -= 1
+    if month > 12:
+        month = 1
+        year += 1
+    prev_month = month - 1 if month > 1 else 12
+    prev_year = year - 1 if month == 1 else year
+    next_month = month + 1 if month < 12 else 1
+    next_year = year + 1 if month == 12 else year
+    first_weekday, days_in_month = cal_module.monthrange(year, month)
+    first_weekday = (first_weekday + 1) % 7
+    calendar_days = [0] * first_weekday + list(range(1, days_in_month + 1))
+    appointments = Appointment.objects.all().order_by("date")
+    month_appointments = appointments.filter(date__month=month, date__year=year)
+    days_with_events = set(a.date.day for a in month_appointments)
+    context = {
+        "appointments": appointments,
+        "month_appointments": month_appointments,
+        "calendar_days": calendar_days,
+        "month": month,
+        "year": year,
+        "month_name": cal_module.month_name[month],
+        "prev_month": prev_month,
+        "prev_year": prev_year,
+        "next_month": next_month,
+        "next_year": next_year,
+        "today_day": today.day,
+        "today_month": today.month,
+        "today_year": today.year,
+        "days_with_events": days_with_events,
+    }
+    return render(request, "scheduler/calendar.html", context)'''
+
+content = content.replace(old, new)
+f = open('scheduler/views.py', 'w', encoding='utf-8')
 f.write(content)
 f.close()
-print('base.html updated with logout!')
+print('calendar view updated!')
