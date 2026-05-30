@@ -37,7 +37,7 @@
       <td>{{ a.client|default:a.student|default:"-" }}</td>
       <td><span class="badge badge-{{ a.status }}">{{ a.get_status_display }}</span></td>
       <td>
-        <a href="/appointments/{{ a.pk }}/edit/" class="btn btn-primary" style="font-size:12px;padding:4px 10px;">Edit</a>
+        <a href="/appointments/{{ a.pk }}/remind/" style="background:#059669;color:white;border:none;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;text-decoration:none;margin-right:4px;">Remind</a><a href="/appointments/{{ a.pk }}/edit/" class="btn btn-primary" style="font-size:12px;padding:4px 10px;">Edit</a>
         <form method="post" action="/appointments/{{ a.pk }}/delete/" style="display:inline;">
           {% csrf_token %}
           <button type="submit" style="background:#fee2e2;color:#991b1b;border:none;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;" onclick="return confirm('Delete?')">Delete</button>

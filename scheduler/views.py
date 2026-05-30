@@ -181,3 +181,40 @@ def setup(request):
         messages.success(request, "Admin account created! You can now log in.")
         return redirect("/admin/")
     return render(request, "scheduler/setup.html")
+
+@login_required
+def send_reminder(request, pk):
+    from django.core.mail import send_mail
+    from django.conf import settings
+    a = get_object_or_404(Appointment, pk=pk)
+    recipient = None
+    if a.client and a.client.email:
+        recipient = a.client.email
+    elif a.student and a.student.email:
+        recipient = a.student.email
+    if recipient:
+        subject = f"Reminder: {a.title} on {a.date}"
+        message = f"""
+Dear {a.client or a.student},
+
+This is a reminder for your upcoming appointment at Vic_nice Home Concepts.
+
+Appointment: {a.title}
+Type: {a.get_type_display()}
+Date: {a.date}
+Time: {a.start_time or "TBD"}
+Location: {a.location or "Vic_nice Studio"}
+
+Please contact us if you need to reschedule.
+
+Best regards,
+Vic_nice Home Concepts
+        """
+        try:
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [recipient])
+            messages.success(request, f"Reminder sent to {recipient}!")
+        except Exception as e:
+            messages.error(request, f"Failed to send email: {str(e)}")
+    else:
+        messages.error(request, "No email address found for this appointment.")
+    return redirect("appointments")
