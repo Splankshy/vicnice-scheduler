@@ -25,7 +25,7 @@
     {% if query %}<a href="/appointments/" class="btn" style="background:#f3f4f6;color:#374151;">Clear</a>{% endif %}
   </form>
   {% if appointments %}
-  <table>
+  <div class="table-wrap"><table>
     <thead><tr><th>Title</th><th>Type</th><th>Date</th><th>Time</th><th>Client / Student</th><th>Status</th><th>Actions</th></tr></thead>
     <tbody>
     {% for a in appointments %}
@@ -46,7 +46,7 @@
     </tr>
     {% endfor %}
     </tbody>
-  </table>
+  </table></div>
   {% else %}
   <div class="empty">{% if query %}No results for "{{ query }}"{% else %}No appointments yet.{% endif %}</div>
   {% endif %}

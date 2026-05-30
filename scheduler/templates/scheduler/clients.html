@@ -25,7 +25,7 @@
     {% if query %}<a href="/clients/" class="btn" style="background:#f3f4f6;color:#374151;">Clear</a>{% endif %}
   </form>
   {% if clients %}
-  <table>
+  <div class="table-wrap"><table>
     <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Measurements</th><th>Joined</th><th>Actions</th></tr></thead>
     <tbody>
     {% for c in clients %}
@@ -44,7 +44,7 @@
     </tr>
     {% endfor %}
     </tbody>
-  </table>
+  </table></div>
   {% else %}
   <div class="empty">{% if query %}No results for "{{ query }}"{% else %}No clients yet.{% endif %}</div>
   {% endif %}
